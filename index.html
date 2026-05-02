@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PANU — Panen Unggul</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===========================
+       RESET & CSS VARIABLES
+    =========================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --soil:    #2C1A0E;
+      --bark:    #5C3D1E;
+      --moss:    #3A5A2A;
+      --leaf:    #5A8C3A;
+      --sprout:  #8CBF5A;
+      --dew:     #C8E68C;
+      --sun:     #F5D06B;
+      --cream:   #F7F0E0;
+      --rust:    #C05030;
+      --paper:   #EDE8DC;
+
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'DM Sans', sans-serif;
+      --font-mono:    'Space Mono', monospace;
+
+      --radius: 18px;
+      --radius-sm: 10px;
+      --transition: .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--cream);
+      color: var(--soil);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ===========================
+       CUSTOM CURSOR
+    =========================== */
+    #cursor-dot, #cursor-ring {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: opacity .3s;
+    }
+    #cursor-dot  { width: 8px;  height: 8px;  background: var(--leaf); }
+    #cursor-ring { width: 36px; height: 36px; border: 2px solid var(--sprout); opacity: .6; transition: transform .12s, width .3s, height .3s, opacity .3s; }
+    body:hover #cursor-dot, body:hover #cursor-ring { opacity: 1; }
+
+    /* ===========================
+       NOISE TEXTURE OVERLAY
+    =========================== */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===========================
+       NAVBAR
+    =========================== */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(247,240,224,.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(90,140,58,.15);
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: .7rem;
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 42px; height: 42px;
+      background: var(--moss);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 14px rgba(58,90,42,.3);
+    }
+    .nav-logo-text {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--moss);
+      letter-spacing: -.01em;
+    }
+    .nav-logo-sub {
+      font-size: .68rem;
+      font-family: var(--font-mono);
+      color: var(--bark);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 500;
+      color: var(--bark);
+      position: relative;
+      padding-bottom: 2px;
+      transition: color var(--transition);
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0;
+      width: 0; height: 2px;
+      background: var(--leaf);
+      transition: width var(--transition);
+    }
+    .nav-links a:hover { color: var(--leaf); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-cta {
+      background: var(--moss);
+      color: var(--cream) !important;
+      padding: .55rem 1.4rem;
+      border-radius: 99px;
+      transition: background var(--transition), transform var(--transition) !important;
+    }
+    .nav-cta:hover { background: var(--leaf) !important; transform: translateY(-2px); }
+    .nav-cta::after { display: none !important; }
+
+    /* ===========================
+       HERO
+    =========================== */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 7rem 3rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Organic background blobs */
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(140,191,90,.18) 0%, transparent 65%);
+      right: -150px; top: -100px;
+      border-radius: 50%;
+      animation: blobFloat 8s ease-in-out infinite;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(245,208,107,.15) 0%, transparent 65%);
+      left: -100px; bottom: 0;
+      border-radius: 50%;
+      animation: blobFloat 11s ease-in-out infinite reverse;
+    }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -30px) scale(1.05); }
+    }
+
+    .hero-content { position: relative; z-index: 1; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--dew);
+      color: var(--moss);
+      padding: .4rem 1rem;
+      border-radius: 99px;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      animation: fadeUp .6s ease both;
+    }
+
+    .hero-badge-dot {
+      width: 7px; height: 7px;
+      background: var(--leaf);
+      border-radius: 50%;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 5.5vw, 5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--soil);
+      margin-bottom: 1rem;
+      animation: fadeUp .6s .1s ease both;
+    }
+    .hero-title .accent { color: var(--leaf); font-style: italic; }
+
+    .hero-tagline {
+      font-size: 1.05rem;
+      color: var(--bark);
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      max-width: 460px;
+      animation: fadeUp .6s .2s ease both;
+    }
+    .hero-tagline strong { color: var(--moss); font-weight: 600; }
+
+    .hero-buttons {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      animation: fadeUp .6s .3s ease both;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: .6rem;
+      padding: .9rem 2rem;
+      border-radius: 99px;
+      font-size: .95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: none;
+      cursor: none;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .btn:hover { transform: translateY(-3px); }
+
+    .btn-primary {
+      background: var(--moss);
+      color: var(--cream);
+      box-shadow: 0 8px 24px rgba(58,90,42,.35);
+    }
+    .btn-primary:hover { background: var(--leaf); box-shadow: 0 12px 32px rgba(90,140,58,.4); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--moss);
+      border: 2px solid var(--moss);
+    }
+    .btn-secondary:hover { background: var(--moss); color: var(--cream); }
+
+    .btn-icon { font-size: 1.1rem; }
+
+    /* Hero Visual */
+    .hero-visual {
+      position: relative; z-index: 1;
+      display: flex; justify-content: center; align-items: center;
+      animation: fadeUp .6s .25s ease both;
+    }
+
+    .hero-card-stack {
+      position: relative;
+      width: 360px; height: 400px;
+    }
+
+    .hcard {
+      position: absolute;
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      box-shadow: 0 20px 60px rgba(44,26,14,.12);
+      transition: transform var(--transition);
+    }
+
+    .hcard-main {
+      width: 300px;
+      top: 40px; left: 30px;
+      background: linear-gradient(135deg, var(--moss) 0%, var(--leaf) 100%);
+      color: white;
+      z-index: 3;
+      animation: cardFloat 5s ease-in-out infinite;
+    }
+    @keyframes cardFloat { 0%,100%{transform:rotate(-2deg) translateY(0)} 50%{transform:rotate(-2deg) translateY(-10px)} }
+
+    .hcard-back1 {
+      width: 280px;
+      top: 20px; left: 60px;
+      background: var(--dew);
+      z-index: 2;
+      transform: rotate(4deg);
+    }
+    .hcard-back2 {
+      width: 260px;
+      top: 10px; left: 80px;
+      background: var(--sun);
+      z-index: 1;
+      transform: rotate(8deg);
+    }
+
+    .hcard-emoji { font-size: 3rem; margin-bottom: 1rem; }
+    .hcard-label {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      opacity: .7;
+      margin-bottom: .3rem;
+    }
+    .hcard-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; }
+    .hcard-sub { font-size: .85rem; opacity: .8; margin-top: .3rem; }
+
+    .hcard-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.2);
+      padding: .3rem .8rem;
+      border-radius: 99px;
+      font-size: .75rem;
+      margin-top: 1rem;
+    }
+
+    /* Stats floating */
+    .hero-stat {
+      position: absolute;
+      background: white;
+      border-radius: var(--radius-sm);
+      padding: .7rem 1rem;
+      box-shadow: 0 8px 24px rgba(44,26,14,.1);
+      font-size: .8rem;
+      z-index: 10;
+    }
+    .hero-stat.s1 { top: 0; right: 0; animation: cardFloat 6s ease-in-out infinite .5s; }
+    .hero-stat.s2 { bottom: 60px; left: 0; animation: cardFloat 7s ease-in-out infinite 1s; }
+    .hero-stat-val { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--leaf); }
+    .hero-stat-label { color: var(--bark); font-size: .72rem; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===========================
+       TAGLINES MARQUEE
+    =========================== */
+    .marquee-section {
+      background: var(--moss);
+      padding: 1.2rem 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 0;
+      animation: marquee 20s linear infinite;
+      white-space: nowrap;
+    }
+    .marquee-item {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--dew);
+      padding: 0 2.5rem;
+      flex-shrink: 0;
+    }
+    .marquee-dot { color: var(--sun); }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ===========================
+       FEATURES SECTION
+    =========================== */
+    .features {
+      padding: 7rem 3rem;
+      background: var(--paper);
+      position: relative;
+    }
+
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--leaf);
+      margin-bottom: .8rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 900;
+      color: var(--soil);
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .section-title .accent { color: var(--leaf); font-style: italic; }
+
+    .section-sub {
+      color: var(--bark);
+      font-size: 1rem;
+      max-width: 500px;
+      line-height: 1.7;
+      margin-bottom: 3.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 2rem;
+      border: 1px solid rgba(90,140,58,.1);
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--moss), var(--sprout));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition);
+    }
+    .feat-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(44,26,14,.1); border-color: var(--sprout); }
+    .feat-card:hover::before { transform: scaleX(1); }
+
+    .feat-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+    .feat-icon.green  { background: rgba(90,140,58,.12); }
+    .feat-icon.yellow { background: rgba(245,208,107,.2); }
+    .feat-icon.brown  { background: rgba(92,61,30,.1); }
+    .feat-icon.rust   { background: rgba(192,80,48,.1); }
+
+    .feat-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--soil);
+      margin-bottom: .5rem;
+    }
+    .feat-desc { font-size: .9rem; color: var(--bark); line-height: 1.65; }
+
+    /* ===========================
+       MAIN TOOLS SECTION (AI)
+    =========================== */
+    .tools {
+      padding: 7rem 3rem;
+      background: var(--cream);
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3.5rem;
+    }
+
+    .tool-card {
+      border-radius: calc(var(--radius) * 1.2);
+      overflow: hidden;
+      position: relative;
+      min-height: 480px;
+      display: flex; flex-direction: column;
+      cursor: none;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .tool-card:hover { transform: translateY(-8px); box-shadow: 0 30px 70px rgba(44,26,14,.18); }
+
+    /* QnA Card */
+    .tool-qna {
+      background: linear-gradient(160deg, var(--soil) 0%, var(--bark) 100%);
+      color: white;
+    }
+
+    /* Scan Card */
+    .tool-scan {
+      background: linear-gradient(160deg, var(--moss) 0%, #1F3A12 100%);
+      color: white;
+    }
+
+    .tool-bg-pattern {
+      position: absolute; inset: 0;
+      opacity: .06;
+      background-image: radial-gradient(circle, white 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .tool-body {
+      position: relative; z-index: 1;
+      padding: 2.5rem;
+      display: flex; flex-direction: column;
+      flex: 1;
+    }
+
+    .tool-label {
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      opacity: .6;
+      margin-bottom: 1.2rem;
+    }
+
+    .tool-icon-big { font-size: 3.5rem; margin-bottom: 1.2rem; }
+
+    .tool-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: .8rem;
+    }
+
+    .tool-desc {
+      font-size: .95rem;
+      opacity: .8;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+      flex: 1;
+    }
+
+    .tool-features-list {
+      list-style: none;
+      margin-bottom: 2rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+    .tool-features-list li {
+      display: flex; align-items: center; gap: .6rem;
+      font-size: .88rem;
+      opacity: .85;
+    }
+    .tool-features-list li::before {
+      content: '✓';
+      width: 20px; height: 20px;
+      background: rgba(255,255,255,.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem;
+      flex-shrink: 0;
+    }
+
+    .tool-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .7rem;
+      padding: 1rem 2rem;
+      border-radius: 99px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      cursor: none;
+      text-decoration: none;
+      transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+      width: 100%;
+    }
+    .tool-btn:hover { transform: scale(1.03); }
+
+    .btn-qna {
+      background: var(--sun);
+      color: var(--soil);
+      box-shadow: 0 8px 24px rgba(245,208,107,.4);
+    }
+    .btn-qna:hover { background: #ffd84d; box-shadow: 0 12px 32px rgba(245,208,107,.6); }
+
+    .btn-scan {
+      background: var(--dew);
+      color: var(--moss);
+      box-shadow: 0 8px 24px rgba(200,230,140,.4);
+    }
+    .btn-scan:hover { background: #d8f0a0; box-shadow: 0 12px 32px rgba(200,230,140,.6); }
+
+    /* Decorative image on card */
+    .tool-deco {
+      position: absolute;
+      right: 1.5rem; top: 1.5rem;
+      font-size: 6rem;
+      opacity: .1;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ===========================
+       SCAN MODAL
+    =========================== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(44,26,14,.7);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--transition);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal-box {
+      background: white;
+      border-radius: calc(var(--radius) * 1.3);
+      width: min(600px, 95vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2.5rem;
+      transform: scale(.92) translateY(20px);
+      transition: transform var(--transition);
+      position: relative;
+    }
+    .modal-overlay.open .modal-box { transform: scale(1) translateY(0); }
+
+    .modal-close {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      width: 36px; height: 36px;
+      background: var(--paper);
+      border: none;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: none;
+      display: flex; align-items: center; justify-content: center;
+      transition: background var(--transition);
+    }
+    .modal-close:hover { background: var(--dew); }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: var(--soil);
+      margin-bottom: .4rem;
+    }
+    .modal-sub { color: var(--bark); font-size: .9rem; margin-bottom: 2rem; }
+
+    /* Scan tabs */
+    .scan-tabs {
+      display: flex; gap: .8rem; margin-bottom: 1.8rem;
+    }
+    .scan-tab {
+      flex: 1;
+      padding: .7rem;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--paper);
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: .9rem;
+      font-weight: 500;
+      color: var(--bark);
+      cursor: none;
+      transition: all var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+    }
+    .scan-tab.active {
+      background: var(--moss);
+      color: white;
+      border-color: var(--moss);
+    }
+
+    /* Camera area */
+    .camera-area {
+      background: var(--paper);
+      border-radius: var(--radius);
+      aspect-ratio: 4/3;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem;
+      font-size: .9rem;
+      color: var(--bark);
+      text-align: center;
+      padding: 2rem;
+      border: 2px dashed rgba(90,140,58,.3);
+      overflow: hidden;
+      position: relative;
+    }
+
+    #camera-video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: calc(var(--radius) - 4px);
+      display: none;
+    }
+
+    .camera-placeholder { pointer-events: none; }
+    .camera-icon { font-size: 3rem; margin-bottom: .5rem; }
+
+    #upload-area {
+      display: none;
+      flex-direction: column; align-items: center; gap: 1rem;
+      text-align: center;
+    }
+    #upload-area.visible { display: flex; }
+
+    #file-input { display: none; }
+
+    .upload-btn {
+      background: var(--moss);
+      color: white;
+      padding: .8rem 1.8rem;
+      border-radius: 99px;
+      border: none;
+      font-family: var(--font-body);
+      font-size: .9rem;
+      cursor: none;
+      transition: background var(--transition);
+    }
+    .upload-btn:hover { background: var(--leaf); }
+
+    #preview-img {
+      max-width: 100%; border-radius: var(--radius-sm);
+      display: none;
+    }
+
+    /* Camera controls */
+    .camera-controls {
+      display: flex; gap: .8rem; justify-content: center; margin-top: 1rem;
+    }
+    .cam-btn {
+      flex: 1;
+      padding: .75rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-family: var(--font-body);
+      font-size: .88rem;
+      font-weight: 500;
+      cursor: none;
+      transition: all var(--transition);
+    }
+    .cam-btn-start { background: var(--moss); color: white; }
+    .cam-btn-start:hover { background: var(--leaf); }
+    .cam-btn-capture { background: var(--sun); color: var(--soil); }
+    .cam-btn-capture:hover { background: #ffd84d; }
+    .cam-btn-analyze {
+      background: linear-gradient(135deg, var(--moss), var(--leaf));
+      color: white;
+      display: none;
+    }
+    .cam-btn-analyze:hover { opacity: .9; }
+
+    /* AI external links */
+    .ai-links {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: .8rem; margin-top: 1.5rem;
+    }
+    .ai-link-card {
+      display: flex; align-items: center; gap: .7rem;
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--paper);
+      text-decoration: none;
+      color: var(--soil);
+      transition: all var(--transition);
+      font-size: .88rem;
+      font-weight: 500;
+    }
+    .ai-link-card:hover { border-color: var(--leaf); background: rgba(90,140,58,.06); transform: translateY(-2px); }
+    .ai-link-icon { font-size: 1.5rem; }
+    .ai-link-name { font-weight: 600; font-size: .85rem; }
+    .ai-link-sub { font-size: .72rem; color: var(--bark); }
+
+    /* ===========================
+       QnA TIPS
+    =========================== */
+    .qna-tips {
+      margin-top: 1.5rem;
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.5rem;
+    }
+    .qna-tips-title { font-weight: 600; color: var(--moss); margin-bottom: .8rem; font-size: .9rem; }
+    .qna-tip-list { display: flex; flex-direction: column; gap: .4rem; }
+    .qna-tip {
+      background: white;
+      border-radius: var(--radius-sm);
+      padding: .55rem 1rem;
+      font-size: .83rem;
+      color: var(--bark);
+      border-left: 3px solid var(--sprout);
+      cursor: none;
+      transition: background var(--transition);
+    }
+    .qna-tip:hover { background: var(--dew); }
+
+    /* ===========================
+       DATABASE HAMA
+    =========================== */
+    .database {
+      padding: 7rem 3rem;
+      background: var(--soil);
+      color: white;
+    }
+
+    .database .section-eyebrow { color: var(--sprout); }
+    .database .section-title { color: var(--cream); }
+    .database .section-sub { color: rgba(247,240,224,.65); }
+
+    .hama-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+
+    .hama-card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
+      cursor: none;
+    }
+    .hama-card:hover { background: rgba(255,255,255,.1); border-color: var(--sprout); transform: translateY(-4px); }
+
+    .hama-emoji { font-size: 2.5rem; margin-bottom: .8rem; }
+    .hama-name { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: .3rem; }
+    .hama-latin { font-family: var(--font-mono); font-size: .65rem; opacity: .5; letter-spacing: .05em; margin-bottom: .8rem; text-transform: uppercase; }
+    .hama-tag {
+      display: inline-block;
+      padding: .2rem .7rem;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-family: var(--font-mono);
+      background: rgba(140,191,90,.2);
+      color: var(--sprout);
+      margin-right: .3rem; margin-bottom: .3rem;
+    }
+
+    /* ===========================
+       HOW IT WORKS
+    =========================== */
+    .how {
+      padding: 7rem 3rem;
+      background: var(--paper);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-top: 3.5rem;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px; left: calc(12.5% + 28px); right: calc(12.5% + 28px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--sprout), var(--moss));
+    }
+
+    .step {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; padding: 0 1rem;
+    }
+
+    .step-num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--moss), var(--sprout));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-bottom: 1.2rem;
+      position: relative; z-index: 1;
+      box-shadow: 0 8px 24px rgba(58,90,42,.3);
+    }
+
+    .step-title { font-weight: 600; color: var(--soil); margin-bottom: .4rem; font-size: .95rem; }
+    .step-desc { font-size: .85rem; color: var(--bark); line-height: 1.6; }
+
+    /* ===========================
+       CTA SECTION
+    =========================== */
+    .cta-section {
+      padding: 7rem 3rem;
+      background: linear-gradient(135deg, var(--moss) 0%, #1F3A12 100%);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .cta-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      color: var(--dew);
+      padding: .4rem 1.2rem;
+      border-radius: 99px;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 900;
+      color: white;
+      margin-bottom: 1rem;
+      position: relative; z-index: 1;
+    }
+    .cta-sub {
+      color: rgba(255,255,255,.7);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      max-width: 500px; margin-left: auto; margin-right: auto;
+      position: relative; z-index: 1;
+      line-height: 1.7;
+    }
+    .cta-buttons { display: flex; gap: 1rem; justify-content: center; position: relative; z-index: 1; }
+
+    /* ===========================
+       FOOTER
+    =========================== */
+    footer {
+      background: var(--soil);
+      color: rgba(247,240,224,.6);
+      padding: 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--cream);
+    }
+    .footer-logo span { color: var(--sprout); }
+    .footer-sub { font-size: .8rem; margin-top: .3rem; }
+    .footer-copy { font-size: .8rem; font-family: var(--font-mono); }
+
+    /* ===========================
+       SCROLL REVEAL
+    =========================== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ===========================
+       RESPONSIVE
+    =========================== */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 6rem 1.5rem 3rem; }
+      .hero-visual { display: none; }
+      .features, .tools, .database, .how, .cta-section { padding: 5rem 1.5rem; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+      .steps-grid::before { display: none; }
+      .ai-links { grid-template-columns: 1fr; }
+      footer { padding: 2rem 1.5rem; }
+    }
+
+    @media (max-width: 500px) {
+      .steps-grid { grid-template-columns: 1fr; }
+      .hama-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- ===========================
+     NAVBAR
+=========================== -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">🌿</div>
+    <div>
+      <div class="nav-logo-text">PANU</div>
+      <div class="nav-logo-sub">Panen Unggul</div>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#fitur">Fitur</a></li>
+    <li><a href="#tools">AI Tools</a></li>
+    <li><a href="#database">Database Hama</a></li>
+    <li><a href="#cara-pakai">Cara Pakai</a></li>
+    <li><a href="#tools" class="nav-cta">Mulai Sekarang</a></li>
+  </ul>
+</nav>
+
+<!-- ===========================
+     HERO
+=========================== -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      Sistem Pertanian Cerdas
+    </div>
+    <h1 class="hero-title">
+      Diagnosa Tanaman,<br>
+      Resep dari <span class="accent">Alam</span>
+    </h1>
+    <p class="hero-tagline">
+      <strong>Sakit Tanamannya, Alami Obatnya.</strong><br>
+      Lawan hama tanpa kimia, bersama PANU — sistem diagnosa pertanian berbasis AI yang membantu petani Indonesia bertani lebih cerdas dan organik.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn btn-primary" onclick="document.getElementById('qna-modal').classList.add('open')">
+        <span class="btn-icon">💬</span> Tanya AI Pertanian
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('scan-modal').classList.add('open')">
+        <span class="btn-icon">🔍</span> Scan Tanaman
+      </button>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-card-stack">
+      <div class="hcard hcard-back2"></div>
+      <div class="hcard hcard-back1"></div>
+      <div class="hcard hcard-main">
+        <div class="hcard-emoji">🌾</div>
+        <div class="hcard-label">Diagnosa Aktif</div>
+        <div class="hcard-value">Blast Padi</div>
+        <div class="hcard-sub">Pyricularia oryzae</div>
+        <div class="hcard-badge">✓ Obat Organik Tersedia</div>
+      </div>
+      <div class="hero-stat s1">
+        <div class="hero-stat-val">150+</div>
+        <div class="hero-stat-label">Jenis Hama</div>
+      </div>
+      <div class="hero-stat s2">
+        <div class="hero-stat-val">100%</div>
+        <div class="hero-stat-label">Solusi Organik</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================
+     MARQUEE
+=========================== -->
+<div class="marquee-section">
+  <div class="marquee-track" id="marquee">
+    <span class="marquee-item">Diagnosa Tanaman, Resep dari Alam <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Sakit Tanamannya, Alami Obatnya <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Lawan Hama Tanpa Kimia, Bersama PANU <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Panen Unggul, Tanpa Pestisida Kimia <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Diagnosa Tanaman, Resep dari Alam <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Sakit Tanamannya, Alami Obatnya <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Lawan Hama Tanpa Kimia, Bersama PANU <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Panen Unggul, Tanpa Pestisida Kimia <span class="marquee-dot">✦</span></span>
+  </div>
+</div>
+
+<!-- ===========================
+     FITUR
+=========================== -->
+<section class="features" id="fitur">
+  <div class="section-eyebrow">🌿 Fitur Unggulan</div>
+  <h2 class="section-title">Satu Platform,<br>Semua <span class="accent">Solusi Pertanian</span></h2>
+  <p class="section-sub">Dari deteksi penyakit hingga resep pestisida nabati — semua ada di PANU. Gratis, cepat, dan berbasis ilmu pertanian organik.</p>
+
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon green">🔬</div>
+      <div class="feat-title">Deteksi Penyakit</div>
+      <p class="feat-desc">Upload foto daun atau batang tanaman, langsung tahu terkena penyakit apa. Didukung AI dengan akurasi tinggi untuk 150+ jenis penyakit tanaman.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon yellow">🌿</div>
+      <div class="feat-title">Resep Organik</div>
+      <p class="feat-desc">Bahan dan cara membuat pestisida nabati secara lengkap. Dari bawang putih, daun pepaya, hingga kunyit — semua ada resepnya.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon brown">⚖️</div>
+      <div class="feat-title">Dosis Tepat</div>
+      <p class="feat-desc">Takaran yang pas agar tidak overdosis ke tanaman. Dihitung berdasarkan luas lahan dan jenis tanaman yang kamu tanam.</p>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon rust">🐛</div>
+      <div class="feat-title">Database Hama</div>
+      <p class="feat-desc">Kutu, jamur, virus, bakteri — semua ada penawarnya. Database lengkap dengan foto, gejala, dan solusi organik teruji.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================
+     TOOLS / AI SECTION
+=========================== -->
+<section class="tools" id="tools">
+  <div class="section-eyebrow">🤖 AI Tools</div>
+  <h2 class="section-title">Dua Cara Cerdas<br>Bantu <span class="accent">Tanamanmu</span></h2>
+  <p class="section-sub">Pilih cara yang paling mudah buatmu — chat dengan AI atau langsung scan tanaman lewat kamera.</p>
+
+  <div class="tools-grid">
+    <!-- QnA Card -->
+    <div class="tool-card tool-qna reveal">
+      <div class="tool-bg-pattern"></div>
+      <div class="tool-deco">💬</div>
+      <div class="tool-body">
+        <div class="tool-label">🤖 Fitur #1 · Tanya Jawab AI</div>
+        <div class="tool-icon-big">💬</div>
+        <div class="tool-title">Tanya Langsung ke AI</div>
+        <p class="tool-desc">Punya pertanyaan tentang hama, penyakit, atau cara merawat tanaman? Tanya langsung ke AI — bisa bahasa Indonesia, bahasa daerah pun oke!</p>
+        <ul class="tool-features-list">
+          <li>Tanya tentang gejala penyakit tanaman</li>
+          <li>Minta resep pestisida nabati</li>
+          <li>Konsultasi teknik bercocok tanam</li>
+          <li>Tersedia 24/7, gratis selamanya</li>
+        </ul>
+        <button class="tool-btn btn-qna" onclick="document.getElementById('qna-modal').classList.add('open')">
+          💬 Mulai Tanya AI Sekarang
+        </button>
+      </div>
+    </div>
+
+    <!-- Scan Card -->
+    <div class="tool-card tool-scan reveal">
+      <div class="tool-bg-pattern"></div>
+      <div class="tool-deco">📷</div>
+      <div class="tool-body">
+        <div class="tool-label">📷 Fitur #2 · Scan Tanaman</div>
+        <div class="tool-icon-big">🔍</div>
+        <div class="tool-title">Scan Penyakit Tanaman</div>
+        <p class="tool-desc">Arahkan kamera ke daun atau batang tanaman, AI langsung analisis apakah ada penyakit, hama, atau kekurangan nutrisi.</p>
+        <ul class="tool-features-list">
+          <li>Gunakan kamera langsung atau upload foto</li>
+          <li>Deteksi 150+ jenis penyakit tanaman</li>
+          <li>Hasil instan dengan solusi organik</li>
+          <li>Akurasi tinggi berbasis machine learning</li>
+        </ul>
+        <button class="tool-btn btn-scan" onclick="document.getElementById('scan-modal').classList.add('open')">
+          📷 Scan Tanaman Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================
+     DATABASE HAMA
+=========================== -->
+<section class="database" id="database">
+  <div class="section-eyebrow">🐛 Database Lengkap</div>
+  <h2 class="section-title">Semua Hama &<br><span style="color:var(--sprout);font-style:italic;">Penawarnya</span></h2>
+  <p class="section-sub">Ribuan data hama, penyakit, dan solusi organik dikurasi dari penelitian pertanian Indonesia dan internasional.</p>
+
+  <div class="hama-grid">
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🦟</div>
+      <div class="hama-name">Wereng Coklat</div>
+      <div class="hama-latin">Nilaparvata lugens</div>
+      <span class="hama-tag">Padi</span>
+      <span class="hama-tag">Serangga</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Ekstrak daun sirsak + bawang putih</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🍄</div>
+      <div class="hama-name">Blast Padi</div>
+      <div class="hama-latin">Pyricularia oryzae</div>
+      <span class="hama-tag">Padi</span>
+      <span class="hama-tag">Jamur</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Larutan abu sekam + jahe</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🐛</div>
+      <div class="hama-name">Ulat Grayak</div>
+      <div class="hama-latin">Spodoptera litura</div>
+      <span class="hama-tag">Sayuran</span>
+      <span class="hama-tag">Larva</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Ekstrak neem oil + sabun cair</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🦠</div>
+      <div class="hama-name">Layu Fusarium</div>
+      <div class="hama-latin">Fusarium oxysporum</div>
+      <span class="hama-tag">Cabai</span>
+      <span class="hama-tag">Jamur</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Trichoderma + kompos matang</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🐜</div>
+      <div class="hama-name">Kutu Daun</div>
+      <div class="hama-latin">Aphis gossypii</div>
+      <span class="hama-tag">Semua</span>
+      <span class="hama-tag">Serangga</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Semprotan air + daun tembakau</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🔴</div>
+      <div class="hama-name">Antraknosa</div>
+      <div class="hama-latin">Colletotrichum spp.</div>
+      <span class="hama-tag">Cabai</span>
+      <span class="hama-tag">Mangga</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Larutan tembaga sulfat alami</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🌿</div>
+      <div class="hama-name">Bercak Daun</div>
+      <div class="hama-latin">Alternaria alternata</div>
+      <span class="hama-tag">Tomat</span>
+      <span class="hama-tag">Jamur</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Ekstrak bawang merah fermentasi</p>
+    </div>
+    <div class="hama-card reveal">
+      <div class="hama-emoji">🐌</div>
+      <div class="hama-name">Bekicot</div>
+      <div class="hama-latin">Achatina fulica</div>
+      <span class="hama-tag">Sayuran</span>
+      <span class="hama-tag">Moluska</span>
+      <p style="font-size:.83rem;opacity:.7;margin-top:.5rem;">Penangkal: Taburan abu kayu + kulit kopi</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================
+     HOW IT WORKS
+=========================== -->
+<section class="how" id="cara-pakai">
+  <div class="section-eyebrow">📋 Cara Pakai</div>
+  <h2 class="section-title">Mudah Dipakai,<br><span class="accent">4 Langkah Saja</span></h2>
+  <p class="section-sub">Dari foto tanaman sampai dapat solusi organik, butuh kurang dari 1 menit.</p>
+
+  <div class="steps-grid">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <div class="step-title">Pilih Fitur</div>
+      <p class="step-desc">Pilih Tanya AI untuk konsultasi atau Scan untuk deteksi otomatis via foto.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">2</div>
+      <div class="step-title">Foto / Ketik</div>
+      <p class="step-desc">Upload foto daun/batang atau ketikkan gejala yang kamu amati di kebun.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">3</div>
+      <div class="step-title">AI Analisis</div>
+      <p class="step-desc">AI menganalisis dan mengidentifikasi penyakit, hama, atau masalah nutrisi tanamanmu.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">4</div>
+      <div class="step-title">Dapat Solusi</div>
+      <p class="step-desc">Terima resep pestisida nabati lengkap dengan bahan, cara buat, dan dosis yang tepat.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================
+     CTA
+=========================== -->
+<section class="cta-section">
+  <div class="cta-badge">🌱 Mulai Gratis, Tanpa Daftar</div>
+  <h2 class="cta-title">Tanamanmu Butuh<br>Bantuan Sekarang?</h2>
+  <p class="cta-sub">Jangan tunggu sampai panen gagal. Diagnosa sekarang, obati dengan bahan alami yang ada di sekitarmu.</p>
+  <div class="cta-buttons">
+    <button class="btn btn-primary" style="background:var(--sun);color:var(--soil);box-shadow:0 8px 24px rgba(245,208,107,.4);" onclick="document.getElementById('qna-modal').classList.add('open')">
+      💬 Tanya AI Pertanian
+    </button>
+    <button class="btn btn-secondary" style="border-color:var(--dew);color:var(--dew);" onclick="document.getElementById('scan-modal').classList.add('open')">
+      📷 Scan Tanaman
+    </button>
+  </div>
+</section>
+
+<!-- ===========================
+     FOOTER
+=========================== -->
+<footer>
+  <div>
+    <div class="footer-logo">PA<span>NU</span></div>
+    <div class="footer-sub">Panen Unggul · Sistem Pertanian Cerdas</div>
+  </div>
+  <div class="footer-copy">© 2025 PANU · Lawan Hama Tanpa Kimia · Made with 🌿</div>
+</footer>
+
+<!-- ===========================
+     QnA MODAL
+=========================== -->
+<div class="modal-overlay" id="qna-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('qna-modal').classList.remove('open')">✕</button>
+    <div class="modal-title">💬 Tanya AI Pertanian</div>
+    <p class="modal-sub">Pilih platform AI terpercaya di bawah ini untuk mulai konsultasi masalah tanamanmu. Semua gratis dan siap membantu!</p>
+
+    <div style="background:var(--paper);border-radius:var(--radius);padding:1.2rem 1.5rem;margin-bottom:1.5rem;">
+      <div style="font-weight:600;color:var(--moss);margin-bottom:.5rem;font-size:.9rem;">💡 Tips Bertanya yang Efektif:</div>
+      <p style="font-size:.85rem;color:var(--bark);line-height:1.6;">Sebutkan: <strong>jenis tanaman</strong> + <strong>gejala yang terlihat</strong> + <strong>sudah berapa lama</strong>. Contoh: <em>"Daun cabai saya menguning dan keriting sejak 5 hari lalu, ada bintik putih di bawah daun"</em></p>
+    </div>
+
+    <p style="font-size:.88rem;font-weight:600;color:var(--bark);margin-bottom:1rem;">🌐 Pilih AI yang ingin kamu gunakan:</p>
+
+    <div class="ai-links">
+      <a href="https://chat.openai.com/?q=Saya+petani+Indonesia+dan+butuh+bantuan+diagnosa+penyakit+tanaman+serta+solusi+pestisida+nabati+organik" target="_blank" class="ai-link-card">
+        <div class="ai-link-icon">🤖</div>
+        <div>
+          <div class="ai-link-name">ChatGPT</div>
+          <div class="ai-link-sub">OpenAI · Paling populer</div>
+        </div>
+      </a>
+      <a href="https://claude.ai/new?q=Saya+petani+Indonesia+dan+butuh+bantuan+diagnosa+penyakit+tanaman+serta+solusi+pestisida+nabati+organik" target="_blank" class="ai-link-card">
+        <div class="ai-link-icon">🧠</div>
+        <div>
+          <div class="ai-link-name">Claude AI</div>
+          <div class="ai-link-sub">Anthropic · Detail & teliti</div>
+        </div>
+      </a>
+      <a href="https://gemini.google.com/app?q=Saya+petani+Indonesia+dan+butuh+bantuan+diagnosa+penyakit+tanaman+serta+solusi+pestisida+nabati+organik" target="_blank" class="ai-link-card">
+        <div class="ai-link-icon">✨</div>
+        <div>
+          <div class="ai-link-name">Gemini</div>
+          <div class="ai-link-sub">Google · Sumber terpercaya</div>
+        </div>
+      </a>
+      <a href="https://www.perplexity.ai/?q=penyakit+tanaman+pertanian+solusi+pestisida+nabati+organik+Indonesia" target="_blank" class="ai-link-card">
+        <div class="ai-link-icon">🔎</div>
+        <div>
+          <div class="ai-link-name">Perplexity</div>
+          <div class="ai-link-sub">AI + Search · Dengan referensi</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="qna-tips">
+      <div class="qna-tips-title">📋 Contoh Pertanyaan Siap Pakai (klik untuk salin):</div>
+      <div class="qna-tip-list">
+        <div class="qna-tip" onclick="copyTip(this)">🌾 "Daun padi saya bercak coklat dengan tepi kuning, sudah menyebar ke seluruh hamparan. Ini penyakit apa dan bagaimana obatnya secara organik?"</div>
+        <div class="qna-tip" onclick="copyTip(this)">🌶️ "Buah cabai saya membusuk dari ujung meski belum matang. Apa penyebabnya dan bagaimana cara mengobati dengan bahan alami?"</div>
+        <div class="qna-tip" onclick="copyTip(this)">🥬 "Daun sawi saya berlubang-lubang kecil dan ada serangga kecil hitam di bawahnya. Bagaimana cara membuat pestisida nabati untuk mengusirnya?"</div>
+        <div class="qna-tip" onclick="copyTip(this)">🍅 "Batang tomat saya layu mendadak padahal disiram rutin. Apa yang salah dan apa solusi organiknya?"</div>
+      </div>
+    </div>
+
+    <div id="copy-toast" style="display:none;background:var(--moss);color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);text-align:center;margin-top:1rem;font-size:.85rem;">
+      ✅ Teks disalin! Buka AI di atas dan tempel pertanyaannya.
+    </div>
+  </div>
+</div>
+
+<!-- ===========================
+     SCAN MODAL
+=========================== -->
+<div class="modal-overlay" id="scan-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeScanModal()">✕</button>
+    <div class="modal-title">📷 Scan Penyakit Tanaman</div>
+    <p class="modal-sub">Gunakan kamera atau upload foto tanaman untuk deteksi penyakit via AI. Pilih platform AI yang mendukung analisis gambar.</p>
+
+    <div class="scan-tabs">
+      <button class="scan-tab active" id="tab-camera" onclick="switchTab('camera')">📷 Kamera Langsung</button>
+      <button class="scan-tab" id="tab-upload" onclick="switchTab('upload')">🖼️ Upload Foto</button>
+      <button class="scan-tab" id="tab-ai" onclick="switchTab('ai')">🤖 AI Scan Online</button>
+    </div>
+
+    <!-- Camera Tab -->
+    <div id="panel-camera">
+      <div class="camera-area" id="camera-box">
+        <video id="camera-video" autoplay playsinline></video>
+        <canvas id="snap-canvas" style="display:none;width:100%;border-radius:12px;"></canvas>
+        <div class="camera-placeholder" id="cam-placeholder">
+          <div class="camera-icon">📷</div>
+          <strong>Kamera belum aktif</strong>
+          <p style="font-size:.82rem;margin-top:.3rem;max-width:280px;">Klik "Aktifkan Kamera" lalu arahkan ke daun atau batang tanaman yang ingin dideteksi.</p>
+        </div>
+      </div>
+      <div class="camera-controls">
+        <button class="cam-btn cam-btn-start" id="btn-start-cam" onclick="startCamera()">📷 Aktifkan Kamera</button>
+        <button class="cam-btn cam-btn-capture" id="btn-capture" onclick="capturePhoto()" style="display:none;">📸 Ambil Foto</button>
+        <button class="cam-btn cam-btn-analyze" id="btn-analyze" onclick="analyzeWithAI()">🔍 Analisa ke AI</button>
+      </div>
+      <div id="cam-instruction" style="font-size:.82rem;color:var(--bark);text-align:center;margin-top:.8rem;display:none;">
+        💡 Arahkan kamera ke daun/batang tanaman dengan pencahayaan cukup untuk hasil terbaik.
+      </div>
+    </div>
+
+    <!-- Upload Tab -->
+    <div id="panel-upload" style="display:none;">
+      <div class="camera-area" id="upload-drop-zone">
+        <div id="upload-area" class="visible">
+          <div class="camera-icon">🖼️</div>
+          <strong>Upload Foto Tanaman</strong>
+          <p style="font-size:.82rem;">Foto daun, batang, buah, atau bagian tanaman yang bermasalah</p>
+          <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)" />
+          <button class="upload-btn" onclick="document.getElementById('file-input').click()">📂 Pilih Foto</button>
+        </div>
+        <img id="preview-img" alt="Preview tanaman" />
+      </div>
+      <div class="camera-controls" id="upload-controls" style="display:none;">
+        <button class="cam-btn cam-btn-start" onclick="resetUpload()">🔄 Ganti Foto</button>
+        <button class="cam-btn cam-btn-analyze" style="display:flex;" onclick="analyzeUploadWithAI()">🔍 Analisa ke AI</button>
+      </div>
+    </div>
+
+    <!-- AI Tab -->
+    <div id="panel-ai" style="display:none;">
+      <p style="font-size:.88rem;color:var(--bark);margin-bottom:1rem;line-height:1.6;">
+        AI berikut mendukung <strong>upload gambar</strong> untuk analisis visual tanaman. Buka, upload foto tanamanmu, dan tanyakan diagnosisnya:
+      </p>
+      <div class="ai-links" style="grid-template-columns:1fr;">
+        <a href="https://chat.openai.com" target="_blank" class="ai-link-card">
+          <div class="ai-link-icon">🤖</div>
+          <div style="flex:1">
+            <div class="ai-link-name">ChatGPT (Terbaik untuk Scan)</div>
+            <div class="ai-link-sub">Dukung upload gambar · Analisis visual tanaman</div>
+          </div>
+          <span style="font-size:.75rem;background:var(--dew);color:var(--moss);padding:.2rem .6rem;border-radius:99px;">DISARANKAN</span>
+        </a>
+        <a href="https://claude.ai" target="_blank" class="ai-link-card">
+          <div class="ai-link-icon">🧠</div>
+          <div>
+            <div class="ai-link-name">Claude AI</div>
+            <div class="ai-link-sub">Upload gambar · Penjelasan detail + solusi organik</div>
+          </div>
+        </a>
+        <a href="https://gemini.google.com" target="_blank" class="ai-link-card">
+          <div class="ai-link-icon">✨</div>
+          <div>
+            <div class="ai-link-name">Google Gemini</div>
+            <div class="ai-link-sub">Upload foto · Didukung data riset Google</div>
+          </div>
+        </a>
+      </div>
+      <div style="background:var(--paper);border-radius:var(--radius-sm);padding:1rem 1.2rem;margin-top:1rem;font-size:.83rem;color:var(--bark);">
+        <strong style="color:var(--moss);">💡 Cara pakai:</strong> Buka AI di atas → Upload foto tanamanmu → Ketik prompt ini:<br><br>
+        <em style="background:white;display:block;padding:.5rem .8rem;border-radius:6px;border-left:3px solid var(--sprout);">"Ini foto tanaman [nama tanaman] saya. Tolong identifikasi penyakit atau hama yang terlihat dan berikan solusi pestisida nabati organik yang bisa dibuat sendiri."</em>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===========================
+     JAVASCRIPT
+=========================== -->
+<script>
+  // ===== CUSTOM CURSOR =====
+  const dot  = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    dot.style.left  = e.clientX + 'px';
+    dot.style.top   = e.clientY + 'px';
+    rx += (e.clientX - rx) * .15;
+    ry += (e.clientY - ry) * .15;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+  });
+
+  function animCursor() {
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+
+  // Hover effect on interactive elements
+  document.querySelectorAll('a,button,.feat-card,.hama-card,.qna-tip,.ai-link-card,.tool-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width  = '54px';
+      ring.style.height = '54px';
+      ring.style.opacity = '.35';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width  = '36px';
+      ring.style.height = '36px';
+      ring.style.opacity = '.6';
+    });
+  });
+
+  // ===== SCROLL REVEAL =====
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: .12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // ===== COPY TIP =====
+  function copyTip(el) {
+    const text = el.innerText.replace(/^[^\s"]+\s/, '').replace(/^"|"$/g, '');
+    navigator.clipboard.writeText(text).catch(() => {});
+    const toast = document.getElementById('copy-toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+  }
+
+  // ===== MODAL CLOSE ON OVERLAY =====
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+
+  // ===== SCAN TABS =====
+  function switchTab(tab) {
+    ['camera','upload','ai'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      document.getElementById('panel-' + t).style.display = t === tab ? '' : 'none';
+    });
+    if (tab !== 'camera') stopCamera();
+  }
+
+  // ===== CAMERA =====
+  let cameraStream = null;
+
+  async function startCamera() {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      const video = document.getElementById('camera-video');
+      video.srcObject = cameraStream;
+      video.style.display = 'block';
+      document.getElementById('cam-placeholder').style.display = 'none';
+      document.getElementById('btn-start-cam').style.display = 'none';
+      document.getElementById('btn-capture').style.display = 'flex';
+      document.getElementById('cam-instruction').style.display = 'block';
+    } catch (err) {
+      alert('Tidak bisa mengakses kamera. Pastikan izin kamera sudah diberikan di browser.\n\nAlternatif: Gunakan tab "Upload Foto" atau "AI Scan Online".');
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    const video = document.getElementById('camera-video');
+    video.style.display = 'none';
+    video.srcObject = null;
+    document.getElementById('cam-placeholder').style.display = '';
+    document.getElementById('btn-start-cam').style.display = '';
+    document.getElementById('btn-capture').style.display = 'none';
+    document.getElementById('btn-analyze').style.display = 'none';
+    document.getElementById('cam-instruction').style.display = 'none';
+    const canvas = document.getElementById('snap-canvas');
+    canvas.style.display = 'none';
+  }
+
+  function capturePhoto() {
+    const video  = document.getElementById('camera-video');
+    const canvas = document.getElementById('snap-canvas');
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    video.style.display  = 'none';
+    canvas.style.display = 'block';
+    document.getElementById('btn-capture').style.display = 'none';
+    document.getElementById('btn-analyze').style.display = 'flex';
+    stopCamera();
+  }
+
+  function analyzeWithAI() {
+    // Open ChatGPT for image analysis guidance
+    window.open('https://chat.openai.com', '_blank');
+    showAnalyzeNote();
+  }
+
+  function showAnalyzeNote() {
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--dew);border-radius:10px;padding:1rem 1.2rem;margin-top:1rem;font-size:.83rem;color:var(--moss);';
+    box.innerHTML = `<strong>✅ AI terbuka!</strong> Sekarang:<br>1. Di ChatGPT, klik ikon 📎 (lampiran)<br>2. Upload foto yang sudah diambil tadi<br>3. Ketik: <em>"Ini tanaman saya, ada penyakit apa? Berikan solusi organik."</em>`;
+    const controls = document.getElementById('btn-analyze').parentElement;
+    if (!document.getElementById('analyze-note')) {
+      box.id = 'analyze-note';
+      controls.parentElement.appendChild(box);
+    }
+  }
+
+  // ===== UPLOAD =====
+  function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('preview-img');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      document.getElementById('upload-area').style.display = 'none';
+      document.getElementById('upload-controls').style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetUpload() {
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('upload-area').style.display = 'flex';
+    document.getElementById('upload-controls').style.display = 'none';
+    document.getElementById('file-input').value = '';
+  }
+
+  function analyzeUploadWithAI() {
+    window.open('https://chat.openai.com', '_blank');
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--dew);border-radius:10px;padding:1rem 1.2rem;margin-top:1rem;font-size:.83rem;color:var(--moss);';
+    box.innerHTML = `<strong>✅ ChatGPT terbuka!</strong><br>Langkah:<br>1. Klik ikon 📎 di ChatGPT<br>2. Upload foto tanaman yang sama<br>3. Tanya: <em>"Apa penyakit pada tanaman ini? Berikan solusi pestisida nabati organik."</em>`;
+    const ctrl = document.getElementById('upload-controls');
+    if (!document.getElementById('upload-note')) {
+      box.id = 'upload-note';
+      ctrl.parentElement.appendChild(box);
+    }
+  }
+
+  function closeScanModal() {
+    document.getElementById('scan-modal').classList.remove('open');
+    stopCamera();
+  }
+
+  // ===== KEYBOARD ESC =====
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(m => {
+        m.classList.remove('open');
+        stopCamera();
+      });
+    }
+  });
+</script>
+</body>
+</html>
